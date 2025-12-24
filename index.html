@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Name Reveal ✨</title>
+    <style>
+        /* === RESET & BASE STYLES === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* === GREETING TEXT === */
+        .greeting {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .greeting h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .greeting p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        /* === CARD CONTAINER === */
+        .card-container {
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .scratch-card {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/10;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .scratch-card:active {
+            cursor: grabbing;
+        }
+
+        /* === BACKGROUND LAYER (REVEALED NAME) === */
+        .name-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+        }
+
+        .baby-name {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 4rem;
+            color: #8b4789;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: nameGlow 2s ease-in-out infinite;
+            line-height: 1.2;
+        }
+
+        /* === CANVAS SCRATCH LAYER === */
+        #scratchCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        /* === HINT TEXT === */
+        .hint {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 1.1rem;
+            animation: pulse 2s ease-in-out infinite;
+            transition: opacity 0.5s;
+        }
+
+        .hint.hidden {
+            opacity: 0;
+        }
+
+        /* === CELEBRATION MESSAGE === */
+        .celebration {
+            text-align: center;
+            margin-top: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
+        }
+
+        .celebration.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .celebration h2 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .celebration p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        /* === RESET BUTTON === */
+        .reset-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            font-size: 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .reset-btn.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reset-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* === CONFETTI PARTICLES === */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes nameGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 5px rgba(139, 71, 137, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 15px rgba(139, 71, 137, 0.8));
+            }
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* === RESPONSIVE DESIGN === */
+        @media (max-width: 600px) {
+            .greeting h1 {
+                font-size: 1.8rem;
+            }
+
+            .greeting p {
+                font-size: 0.95rem;
+            }
+
+            .baby-name {
+                font-size: 2.5rem;
+            }
+
+            .hint {
+                font-size: 0.95rem;
+            }
+
+            .celebration h2 {
+                font-size: 1.4rem;
+            }
+
+            .celebration p {
+                font-size: 1rem;
+            }
+        }
+
+        /* === LOADING STATE === */
+        .loading {
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Greeting Section -->
+    <div class="greeting">
+        <h1>A little surprise awaits…</h1>
+        <p>Something special is about to be revealed</p>
+    </div>
+
+    <!-- Main Card Container -->
+    <div class="card-container">
+        <div class="scratch-card">
+            <!-- Background Layer with Baby Name -->
+            <div class="name-layer">
+                <div class="baby-name" id="babyName">Aarav</div>
+            </div>
+            
+            <!-- Canvas for Scratch Effect -->
+            <canvas id="scratchCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Hint Text -->
+    <div class="hint" id="hint">
+        Scratch gently to reveal the name ✨
+    </div>
+
+    <!-- Celebration Message -->
+    <div class="celebration" id="celebration">
+        <h2>Welcome to the world! 🎉</h2>
+        <p>With love, from Appa & Amma ❤️</p>
+    </div>
+
+    <!-- Reset Button -->
+    <button class="reset-btn" id="resetBtn">Scratch Again</button>
+
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+        // ============================================
+        // CANVAS SCRATCH CARD IMPLEMENTATION
+        // ============================================
+
+        class ScratchCard {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.isScratching = false;
+                this.scratchPercentage = 0;
+                this.hasTriggeredCelebration = false;
+                
+                // Bind methods
+                this.init = this.init.bind(this);
+                this.startScratch = this.startScratch.bind(this);
+                this.scratch = this.scratch.bind(this);
+                this.stopScratch = this.stopScratch.bind(this);
+                this.calculateScratchPercentage = this.calculateScratchPercentage.bind(this);
+                
+                this.init();
+            }
+
+            init() {
+                // Set canvas size to match container
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.offsetWidth;
+                this.canvas.height = container.offsetHeight;
+                
+                // Draw the golden scratch surface
+                this.drawScratchSurface();
+                
+                // Add event listeners
+                // Mouse events
+                this.canvas.addEventListener('mousedown', this.startScratch);
+                this.canvas.addEventListener('mousemove', this.scratch);
+                this.canvas.addEventListener('mouseup', this.stopScratch);
+                this.canvas.addEventListener('mouseleave', this.stopScratch);
+                
+                // Touch events for mobile
+                this.canvas.addEventListener('touchstart', this.startScratch, { passive: false });
+                this.canvas.addEventListener('touchmove', this.scratch, { passive: false });
+                this.canvas.addEventListener('touchend', this.stopScratch);
+                this.canvas.addEventListener('touchcancel', this.stopScratch);
+            }
+
+            drawScratchSurface() {
+                // Create golden metallic gradient
+                const gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
+                gradient.addColorStop(0, '#FFD700');
+                gradient.addColorStop(0.3, '#FFA500');
+                gradient.addColorStop(0.6, '#FFD700');
+                gradient.addColorStop(1, '#DAA520');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Add glitter texture effect
+                this.addGlitterEffect();
+                
+                // Add text overlay
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.font = 'bold 24px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('SCRATCH HERE', this.canvas.width / 2, this.canvas.height / 2);
+            }
+
+            addGlitterEffect() {
+                // Create subtle sparkle/glitter pattern
+                for (let i = 0; i < 100; i++) {
+                    const x = Math.random() * this.canvas.width;
+                    const y = Math.random() * this.canvas.height;
+                    const size = Math.random() * 2 + 1;
+                    const opacity = Math.random() * 0.5 + 0.2;
+                    
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+
+            startScratch(e) {
+                e.preventDefault();
+                this.isScratching = true;
+                this.scratch(e);
+            }
+
+            scratch(e) {
+                if (!this.isScratching) return;
+                
+                e.preventDefault();
+                
+                // Get coordinates (handle both mouse and touch)
+                let x, y;
+                if (e.type.startsWith('touch')) {
+                    const touch = e.touches[0];
+                    const rect = this.canvas.getBoundingClientRect();
+                    x = touch.clientX - rect.left;
+                    y = touch.clientY - rect.top;
+                } else {
+                    x = e.offsetX;
+                    y = e.offsetY;
+                }
+                
+                // Erase the scratch surface with destination-out composite
+                this.ctx.globalCompositeOperation = 'destination-out';
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, 30, 0, Math.PI * 2); // 30px brush size
+                this.ctx.fill();
+                this.ctx.globalCompositeOperation = 'source-over';
+                
+                // Calculate scratch percentage periodically
+                if (Math.random() < 0.1) { // Check every ~10th scratch for performance
+                    this.calculateScratchPercentage();
+                }
+            }
+
+            stopScratch() {
+                this.isScratching = false;
+            }
+
+            calculateScratchPercentage() {
+                // Sample pixels to determine how much has been scratched
+                const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                const pixels = imageData.data;
+                let transparent = 0;
+                
+                // Check every 10th pixel for performance (sampling)
+                for (let i = 0; i < pixels.length; i += 40) { // RGBA = 4 values per pixel, check every 10th
+                    if (pixels[i + 3] < 128) { // Alpha channel less than 128 = mostly transparent
+                        transparent++;
+                    }
+                }
+                
+                this.scratchPercentage = (transparent / (pixels.length / 40)) * 100;
+                
+                // Trigger celebration at 70%
+                if (this.scratchPercentage >= 70 && !this.hasTriggeredCelebration) {
+                    this.hasTriggeredCelebration = true;
+                    this.triggerCelebration();
+                }
+            }
+
+            triggerCelebration() {
+                // Hide hint text
+                document.getElementById('hint').classList.add('hidden');
+                
+                // Show celebration message
+                const celebration = document.getElementById('celebration');
+                celebration.classList.add('show');
+                
+                // Show reset button
+                const resetBtn = document.getElementById('resetBtn');
+                resetBtn.classList.add('show');
+                
+                // Launch confetti
+                this.launchConfetti();
+                
+                // Add glow effect to name
+                const babyName = document.getElementById('babyName');
+                babyName.style.animation = 'nameGlow 1.5s ease-in-out infinite';
+            }
+
+            launchConfetti() {
+                const container = document.getElementById('confettiContainer');
+                const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd'];
+                const shapes = ['circle', 'square'];
+                
+                // Create 50 confetti pieces
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        
+                        // Random properties
+                        const left = Math.random() * 100;
+                        const animationDuration = Math.random() * 3 + 2;
+                        const color = colors[Math.floor(Math.random() * colors.length)];
+                        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                        
+                        confetti.style.left = left + '%';
+                        confetti.style.backgroundColor = color;
+                        confetti.style.animation = `confettiFall ${animationDuration}s linear forwards`;
+                        confetti.style.opacity = '1';
+                        confetti.style.borderRadius = shape === 'circle' ? '50%' : '0';
+                        
+                        container.appendChild(confetti);
+                        
+                        // Remove confetti after animation
+                        setTimeout(() => {
+                            confetti.remove();
+                        }, animationDuration * 1000);
+                    }, i * 50); // Stagger confetti launch
+                }
+            }
+
+            reset() {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Redraw scratch surface
+                this.drawScratchSurface();
+                
+                // Reset state
+                this.scratchPercentage = 0;
+                this.hasTriggeredCelebration = false;
+                
+                // Hide celebration elements
+                document.getElementById('celebration').classList.remove('show');
+                document.getElementById('resetBtn').classList.remove('show');
+                document.getElementById('hint').classList.remove('hidden');
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize scratch card
+            const scratchCard = new ScratchCard('scratchCanvas');
+            
+            // Reset button functionality
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                scratchCard.reset();
+            });
+            
+            // Handle window resize
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    scratchCard.init();
+                }, 250);
+            });
+        });
+
+        // ============================================
+        // CUSTOMIZATION HELPER
+        // ============================================
+        
+        /**
+         * To customize the baby name, simply change the text content
+         * in the HTML where id="babyName", or use this function:
+         */
+        function setBabyName(name) {
+            document.getElementById('babyName').textContent = name;
+        }
+
+        // Example usage (uncomment and modify):
+        // setBabyName('Your Baby Name Here');
+    </script>
+</body>
+</html>
